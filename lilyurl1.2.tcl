@@ -145,7 +145,8 @@ proc urltitle {url} {
 global url2irc
 set agent "Mozilla/5.0 (X11; Linux i686; rv:2.0.1) Gecko/20100101 Firefox/4.0.1"
   if {[info exists url] && [string length $url]} {
-    ::http::register https 443 ::tls::socket
+    # disable sslv3 and force tlsv1 (POODLE - most websites refusing sslv3 now)
+    ::http::register https 443 [list ::tls::socket -ssl3 0 -tls1 1]
     set http [::http::config -useragent $agent]
     if {[catch {::http::geturl $url -timeout $url2irc(timeout) -validate 1} http]} {
       set status [::http::status $http]
