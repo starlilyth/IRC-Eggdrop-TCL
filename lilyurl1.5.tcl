@@ -41,9 +41,7 @@ set url2irc(maxsize) 1048576    ;# max page size in bytes
 # 1.2 - fixed shortlink redirects, dbfile varname change, 20120821
 # 1.3 - integrated google search. 20120821
 # 1.4 - fixed google search 20131217
-# 1.5 - fixed redir/reloc. removed google search. 20150825
-# Google is shit. A monopolistic bully with zero standards or ethics.
-# I hope they choke to death on their advertising dollars. 
+# 1.5 - fixed redir/reloc. removed google search. added output colors for some urls. 20150825
 # TODO: sticky/hide, urlsearch, convert to ascii? 
 # BUGS: alt langs (fixed in tcl8.5?)
 
