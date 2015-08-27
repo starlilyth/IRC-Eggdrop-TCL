@@ -82,14 +82,20 @@ set url2irc(redirects) 0
           set newurl [tinyurl $word]
         } else { set newurl "" }
         set urtitle [urltitle $word]
-        if {[string length $newurl]} {
-          puthelp "PRIVMSG $chan :\002$urtitle\002 ( $newurl ), linked by $nick"
-        } else { puthelp "PRIVMSG $chan :\002$urtitle\002, linked by $nick" }
         set lTime [clock seconds]
         sqlite3 ldb $udbfile
           ldb eval {CREATE TABLE IF NOT EXISTS urllog (lTime INTEGER,lchan TEXT,lnick TEXT,lurl TEXT,ltitle TEXT,lflag TEXT)}
           ldb eval {INSERT INTO urllog (lTime, lchan, lnick, lurl, ltitle, lflag)VALUES($lTime,$cname,$nick,$word,$urtitle,$lflag)}
         ldb close
+        regsub -all "Imgur" $urtitle "\00309,01Imgur\003" urtitle
+        regsub -all "YouTube" $urtitle "You\00304Tube\003" urtitle
+        regsub -all "Google" $urtitle "\00302G\00304o\00308o\00302g\00303l\00304e\003" urtitle
+        if {[regexp {i.imgur} $word]} { 
+          regsub {.*} $urtitle "\00309,01Imgur: $urtitle\003" urtitle
+        }
+        if {[string length $newurl]} {
+          puthelp "PRIVMSG $chan :\002$urtitle\002 ( $newurl ), linked by $nick"
+        } else { puthelp "PRIVMSG $chan :\002$urtitle\002, linked by $nick" }
       }
     }
     if {[file isdirectory $url2irc(path)] && [file writable $url2irc(path)]} {
@@ -217,15 +223,8 @@ global url2irc
       regsub -all {[\{\}\\]} $title "" title
       regsub -all " +" $title " " title
       set title [string trim $title]
-      regsub -all "Imgur" $title "\00309Imgur\00300\002" title
-      regsub -all "YouTube" $title "You\00304Tube\00300\002" title
-      regsub -all "Google" $title "\00302G\00304o\00308o\00302g\00303l\00304e\00300\002" title
       return $title
     } else {
-      if {[regexp {i.imgur} $url]} { 
-        set ctype $content_type
-        regsub {.*} $ctype "\00309Imgur: $content_type\00300\002" content_type
-      }
       return "$content_type"
     }
   }
