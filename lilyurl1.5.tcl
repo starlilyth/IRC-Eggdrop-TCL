@@ -11,6 +11,9 @@
 # This needs to be set to a bot writable dir for the web log pages. 
 set url2irc(path) /var/www/html/bonghit/urllog      ;# path to bot writable dir for web log pages
 
+# YouTube link ignore. Set to true to ignore YouTube links (still logs)
+set url2irc(ytignore) true
+
 # Optional space separated list of domains/URLs/keywords to ignore. Entries are * expanded both ways, you have been warned.
 set url2irc(iglist) "rotten.com lemonparty.org dickscab.com decentsite.tld/somepath/terriblepicture.jpg"
 
@@ -41,7 +44,7 @@ set url2irc(maxsize) 1048576    ;# max page size in bytes
 # 1.2 - fixed shortlink redirects, dbfile varname change, 20120821
 # 1.3 - integrated google search. 20120821
 # 1.4 - fixed google search 20131217
-# 1.5 - fixed redir/reloc. removed google search. added output colors for some urls. 20150825
+# 1.5 - fixed redir/reloc. YouTube ignore flag. removed google search. added output colors for some urls. 20150825
 # TODO: sticky/hide, urlsearch, convert to ascii? 
 # BUGS: alt langs (fixed in tcl8.5?)
 
@@ -56,11 +59,11 @@ set url2irc(agent) "Mozilla/5.0 (X11; Linux i686; rv:40.0) Gecko/20100101 Firefo
 set udbfile "./urllog.db"
 setudef flag url2irc
 bind pubm $url2irc(pubmflags) {*://*} pub_url2irc
-bind pub $url2irc(pubmflags) !g pub_g
 
-proc pub_g {nick host user chan text} {
- puthelp "PRIVMSG $chan :Google doesn't support anything that won't show an ad."
-}
+#bind pub $url2irc(pubmflags) !g pub_g
+#proc pub_g {nick host user chan text} {
+# puthelp "PRIVMSG $chan :Google doesn't support anything that won't show an ad."
+#}
 
 proc pub_url2irc {nick host user chan text} {
 global url2irc
@@ -86,7 +89,11 @@ set url2irc(redirects) 0
           ldb eval {INSERT INTO urllog (lTime, lchan, lnick, lurl, ltitle, lflag)VALUES($lTime,$cname,$nick,$word,$urtitle,$lflag)}
         ldb close
         regsub -all "Imgur" $urtitle "\00309,01Imgur\003" urtitle
-        regsub -all "YouTube" $urtitle "You\00304Tube\003" urtitle
+	if {[regexp -nocase {youtube} $urtitle] && $url2irc(ytignore) eq true} { 
+          break
+        } else { 
+          regsub -all "YouTube" $urtitle "\00301,00You\00300,04Tube\003" urtitle
+        } 
         regsub -all "Google" $urtitle "\00302G\00304o\00308o\00302g\00303l\00304e\003" urtitle
         if {[regexp {i.imgur} $word]} { 
           regsub {.*} $urtitle "\00309,01Imgur: $urtitle\003" urtitle
