@@ -17,6 +17,7 @@
 # 4.2 - !instant changes a random thing -/+1 , !random returns things. 20120905
 # 4.3 - locked text change, faster decay for high vals, trim item whitespace 20130215 
 # 4.4 - Immortal karma (user request). Expanded stats. Fixes (locked text, high val decay) 20130526
+# 4.5 - strip ASCII codes from input. 20211221
 # TODO - randomize days a little on entropy 
 
 ### Usage ###
@@ -46,7 +47,7 @@ set karma(deleteflags) "n|-"
 set kfflood 1:300
 
 ###############################################
-set karma(version) "4.4"
+set karma(version) "4.5"
 setudef flag lkarma
 package require sqlite3
 set kdbfile "./lkarma.db"
@@ -66,6 +67,7 @@ proc fixkarma {nick uhost hand chan text} {
     set uhost [string tolower $uhost]
     set chan [string tolower $chan]	
     set item [string range $text 1 [expr [string length $text] -3]]
+    set item [stripcodes bcruag $item]
     set item [string trim $item]
     sqlite3 kdb $kdbfile
     if { [regexp -nocase {(.*)(\+|\-)$} $item] } {
