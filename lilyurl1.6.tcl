@@ -45,6 +45,7 @@ set url2irc(maxsize) 1048576    ;# max page size in bytes
 # 1.3 - integrated google search. 20120821
 # 1.4 - fixed google search 20131217
 # 1.5 - fixed redir/reloc. YouTube ignore flag. removed google search. added output colors for some urls. 20150825
+# 1.6 - updated user agent string. 20211221
 # TODO: sticky/hide, urlsearch, convert to ascii? 
 # BUGS: alt langs (fixed in tcl8.5?)
 
@@ -55,7 +56,7 @@ package require htmlparse
 package require tls
 package require sqlite3
 set url2irc(last) 111
-set url2irc(agent) "Mozilla/5.0 (X11; Linux i686; rv:40.0) Gecko/20100101 Firefox/40.0"
+set url2irc(agent) "Mozilla/5.0 (X11; U; Linux armv7l like Android; en-us) AppleWebKit/531.2+ (KHTML, like Gecko) Version/5.0 Safari/533.2+ Kindle/3.0+"
 set udbfile "./urllog.db"
 setudef flag url2irc
 bind pubm $url2irc(pubmflags) {*://*} pub_url2irc
@@ -252,4 +253,4 @@ proc tinyurl {url} {
  return ""
 }
 
-putlog "URL 2 IRC v1.5 script loaded.."
+putlog "URL 2 IRC v1.6 script loaded.."
