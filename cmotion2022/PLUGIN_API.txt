@@ -1,0 +1,94 @@
+CMOTION PLUGIN API
+
+Organization:
+There are four types of plugins
+- Text and Action - describe the primary of output of the plugin. They are essentially 
+the same. This is probably what you want to use. 
+- Output - modifiers on the output text.
+- IRC_Event - responses to IRC events.
+
+The NAMING CONVENTION is "<name>_<type>.tcl", where <name> is a descriptive word of the 
+output, preferably the same or similar to the name of the abstract used, which has the 
+effect of aggregating all regexps for a given abstract to the same plugin 
+(see plugins/en/smiley_text.tcl for an example). 
+You can also put a prefix on the filename, for easier grouping of sets 
+("my-responses_text.tcl", "my-fun_action.tcl"). 
+Text plugins (cMotion_plugin_text_<name>) must end in _text.tcl, and action plugins
+(cMotion_plugin_action_<name>) must end in _action.tcl
+
+Plugins are self contained (no 'bMotion simple'), and should provide their own execution 
+loop and abstracts (usually), and set their own start vars 
+(see plugins/en/startrek_text.tcl for an example of some possible complexity). 
+Plugins should return 1 if they trigger, and 2 if they trigger without output
+(i.e. return 2 to not increment flood control). They should return 0 if they don't trigger.
+
+Text/Action Example:
+cMotion_plugin_add_text  "name"  "regexp"  %  cMotion_plugin_text_<name>  "lang"
+proc cMotion_plugin_text_<name> { nick host handle channel text } {
+    cMotionDoAction $channel $nick "OUTPUT HERE"
+    return 1
+}
+
+name is as above. 
+regexp is any valid expression to watch for. 
+% is the percentage chance in digits (0-100) this will return a response if called. 
+lang is "en" by default (in the settings file), but can be "any" if it doesnt matter. 
+
+If you write plugins in another language (using french as an example): 
+  add the designator to settings.tcl ("fr").
+  make a designator named subdirectory in plugins (plugins/fr), 
+    then put your plugins in it. 
+  use the designator as the lang in the plugins ("fr")
+
+For Action plugins, substitute "_add_text" with "_add_action", and "text_<name>" with  
+"action_<name>" in the above example. 
+  
+"OUTPUT HERE" 
+Use "%VAR{name}" to use abstracts. There are some general ones 
+(see data/abstracts.tcl), or you can add one: 
+cMotion_abstract_register "name"
+THEN
+cMotion_abstract_batchadd "name" { "response one" "response two" "response three" }
+OR
+cMotion_abstract_batchadd "name" {
+  "response one" 
+  "response two" 
+  "response three"
+}  
+Abstracts can include other abstracts: 
+cMotion_abstract_batchadd "name" {
+  "%VAR{anotherabstract}" 
+  "something witty"
+  "/does an action"
+}  
+The file plugins/en/general_text.tcl has lots of simple text plugin examples. 
+
+These are other output vars that can be used:
+%| = new line
+%NUMBER{<number>} = random number 1 to <number>
+%TIME{<sometime>} = outputs <sometime> (e.g. now, 1 minute ago)
+%% = nick of person being responded to
+%me = $botnick
+%colen = exclamations 
+%pronoun = getPronoun, defaults to 'their self'
+%himherself = getPronoun 
+%hisher = getHisHer, defaults to their
+%hishers = getHisHers, defaults to theirs
+%heshe = getHeShe, defaults to they
+%2 = additional conditional text 
+%percent = %
+%ruser = random user 
+%noun = random concrete noun ("a book" "an apple" "boots")
+%OWNER{%ruser} = random bot owner
+%VERB{%VAR{someabstract}{strip}} = verbs the noun
+%PLURAL{%VAR{someabstract}{strip}} = pluralizes the output
+%REPEAT{min:max:text} = repeats text min to max times
+%SETTING (for plugins)?
+
+Start vars:
+If you are modifying anything in modules to make a plugin work, you are doin it wrong.
+See plugins/en/startrek_text.tcl for an example of plugin specific vars.  
+ 
+Output plugins:
+
+IRC Event plugins: 
