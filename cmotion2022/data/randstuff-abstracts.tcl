@@ -131,7 +131,7 @@ cMotion_abstract_register "randomStuff" {
   "/wiggles"
   "/goes for coffee" 
   "/eats french fries"
-  "/twiddles thumbs" 
+  "/twiddles %hisher thumbs"
   "/puts on some banging house tunes" 
   "/puts on some epic trance" 
   "/puts on some dirty jungle" 

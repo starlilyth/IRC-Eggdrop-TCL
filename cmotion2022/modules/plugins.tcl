@@ -329,17 +329,13 @@ foreach cMotion_language $languages {
   foreach type {text action output irc_event} {
     set tfiles [glob -nocomplain "$cMotionPlugins/$cMotion_language/*_$type.tcl"]
     foreach t $tfiles {
-	  set count [llength [array names cMotion_plugins_$type]]
-      cMotion_putloglev 1 * "cMotion: loading ($cMotion_language) plugin file $t"
-	  set cMotion_noplugins 0
-      catch {
-        source $t
-      } err
-		set newcount [llength [array names cMotion_plugins_$type]]
-		if {($cMotion_testing == 0) && ($newcount == $count) && ($cMotion_noplugins == 0)} {
-			putlog "cMotion: ALERT! plugin file $t added no plugins"
-			putlog "Possible error: $err"
-		}
+        cMotion_putloglev 1 * "cMotion: loading ($cMotion_language) plugin file $t"
+        catch {
+          source $t
+        } err
+      if {($err ne "") && ($cMotion_testing == 0)} {
+  			putlog "Possible error in plugin file $t - error: $err"
+  		}
     }
   }
 }

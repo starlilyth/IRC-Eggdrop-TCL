@@ -107,15 +107,17 @@ proc cMotion_plugin_mgmt_rehash { handle } {
   global cMotion_testing cMotionRoot
   #check we're not going to die
   catch {
+    putlog "cMotion: testing new code.."
     cMotion_putloglev d * "cMotion: Testing new code..."
     set cMotion_testing 1
     source "$cMotionRoot/cMotion.tcl"
   } msg
-  if {$msg != ""} {
+  if {$msg != 0} {
     putlog "cMotion: FATAL: Cannot rehash due to error: $msg"
     cMotion_putadmin "Cannot rehash due to error: $msg"
     return 0
   } else {
+    putlog "cMotion: code test passed!"
     cMotion_putloglev d * "cMotion: New code ok, rehashing..."
     cMotion_putadmin "Rehashing..."
     set cMotion_testing 0
@@ -127,15 +129,17 @@ proc cMotion_plugin_mgmt_reload { handle } {
   global cMotion_testing cMotionRoot
   #check we're not going to die
   catch {
-    cMotion_putloglev d * "cMotion: Testing new code..."
+    putlog "cMotion: Testing new code.."
+    cMotion_putloglev d * "cMotion: testing new code..."
     set cMotion_testing 1
     source "$cMotionRoot/cMotion.tcl"
   } msg
-  if {$msg != ""} {
+  if {$msg != 0} {
     putlog "cMotion: FATAL: Cannot reload due to error: $msg"
     cMotion_putadmin "Cannot reload due to error: $msg"
     return 0
   } else {
+    putlog "cMotion: code test passed!"
     cMotion_putloglev d * "cMotion: New code ok, reloading..."
     cMotion_putadmin "Reloading cMotion..."
     set cMotion_testing 0

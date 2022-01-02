@@ -9,14 +9,6 @@ set cMotionData "$cMotionRoot/data"
 set cMotionLocal "$cMotionRoot/local"
 putlog "cMotion $cMotionVersion starting up..."
 
-package require sqlite3
-set cdbfile "$cMotionRoot/cmotion.db"
-if {![file exists $cdbfile]} {
-  sqlite3 cdb $cdbfile
-    cdb eval {CREATE TABLE test_table(entry TEXT NOT NULL COLLATE NOCASE)}
-  cdb close
-}
-
 # test mode or no? 
 set cMotion_testing 0
 if {$cMotion_testing == 0} {

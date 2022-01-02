@@ -1,10 +1,11 @@
+# the bot loves coffee
+
 cMotion_plugin_add_text "mmmcoffee" "coffee" 40 cMotion_plugin_text_mmmcoffee "en"
 proc cMotion_plugin_text_mmmcoffee { nick host handle channel text } {
   cMotionDoAction $channel $nick "%VAR{mmmcoffees}"
   return 1
 }
-cMotion_abstract_register "mmmcoffees"
-cMotion_abstract_batchadd "mmmcoffees" {
+cMotion_abstract_register "mmmcoffees" {
   "I love coffee"
   "/gets a fresh cup"
   "/makes a fresh pot"
@@ -22,8 +23,7 @@ proc cMotion_plugin_text_zzz { nick host handle channel text } {
   cMotionDoAction $channel $nick "%VAR{handcoffees}"
   return 1
 }
-cMotion_abstract_register "handcoffees"
-cMotion_abstract_batchadd "handcoffees" {
+cMotion_abstract_register "handcoffees" {
   "/hands %% coffee"
   "wake up%colen"
   "go to bed already"

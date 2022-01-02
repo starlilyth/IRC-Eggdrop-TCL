@@ -2,6 +2,31 @@
 #  Attempt to make contractions etc similar to real people
 
 cMotion_plugin_add_output "colloq" cMotion_plugin_output_colloq 1 "en"
+
+set colloq_shouldhave {
+  "should've"
+  "should of"
+}
+set colloq_shouldhavenot {
+  "shouldnt've"
+  "shouldn't of"
+  "shouldnt of"
+  "shouldnt have"
+}
+set colloq_you {
+  "u"
+  "ya"
+}
+set colloq_your {
+  "ur"
+}
+set colloq_negative {
+  "dis"
+  "un"
+  "anti"
+  "im"
+}
+
 proc cMotion_plugin_output_colloq { channel line } {
   global cMotionSettings
   set colloq_rate $cMotionSettings(colloq)
@@ -61,27 +86,4 @@ proc cMotion_plugin_output_colloq_chance { freq } {
     return 1
   }
   return 0
-}
-set colloq_shouldhave {
-  "should've"
-  "should of"
-}
-set colloq_shouldhavenot {
-  "shouldnt've"
-  "shouldn't of"
-  "shouldnt of"
-  "shouldnt have"
-}
-set colloq_you {
-  "u"
-  "ya"
-}
-set colloq_your {
-  "ur"
-}
-set colloq_negative {
-  "dis"
-  "un"
-  "anti"
-  "im"
 }

@@ -1,5 +1,4 @@
 ## cMotion simple plugin: sneeze
-
 cMotion_plugin_add_text "sneeze" "^(sneeze(s)?|(w)?atcho{2,6})" 80 cMotion_plugin_text_sneeze "en"
 
 proc cMotion_plugin_text_sneeze { nick host handle channel text } {
@@ -7,8 +6,7 @@ proc cMotion_plugin_text_sneeze { nick host handle channel text } {
   return 1
 }
 
-cMotion_abstract_register "blessyous"
-cMotion_abstract_batchadd "blessyous" {
+cMotion_abstract_register "blessyous" {
   "gesuntheit"
   "bless you"
   "Bless you"

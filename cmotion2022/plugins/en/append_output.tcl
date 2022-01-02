@@ -1,4 +1,6 @@
 ## cMotion output plugin: append
+cMotion_plugin_add_output "append" cMotion_plugin_output_append 1 "en"
+
 proc cMotion_plugin_output_append { channel line } {
 	if {([string length $line] > 10) && ([rand 100] < 20)} {
 		set line [string trim $line]
@@ -45,5 +47,3 @@ cMotion_abstract_register "prepends" {
   "hey uh,"
   "like,"
 }
-
-cMotion_plugin_add_output "append" cMotion_plugin_output_append 1 "en"
