@@ -1,4 +1,7 @@
 # cMotion plugin irc_quit.tcl 
+cMotion_plugin_add_irc_event "default quit" "quit" ".*" 15 "cMotion_plugins_irc_default_quit" "en"
+cMotion_plugin_add_irc_event "default part" "part" ".*" 15 "cMotion_plugins_irc_default_quit" "en"
+
 proc cMotion_plugins_irc_default_quit { nick host handle channel text } { 
 	#has something happened since we last spoke?
 	set lasttalk [cMotion_plugins_settings_get "system:join" "lasttalk" $channel ""]
@@ -7,9 +10,9 @@ proc cMotion_plugins_irc_default_quit { nick host handle channel text } {
 		if {[cMotion_setting_get "friendly"] != 1} {return 0}
 	}
 	if {[cMotionIsFriend $nick]} {
-		set output "%VAR{departs-nice}"
+		set output "%VAR{departsNice}"
 	} else {
-		set output "%VAR{departs-nasty}"
+		set output "%VAR{departsNasty}"
 	}
 	# check if the handle is still in the channel
 	set count 0
@@ -42,11 +45,6 @@ proc cMotion_plugins_irc_default_quit { nick host handle channel text } {
 
 	return 1
 }
-cMotion_plugin_add_irc_event "default quit" "quit" ".*" 15 "cMotion_plugins_irc_default_quit" "en"
-cMotion_plugin_add_irc_event "default part" "part" ".*" 15 "cMotion_plugins_irc_default_quit" "en"
 
-cMotion_abstract_register "departs-nice"
-cMotion_abstract_batchadd "departs-nice" { "bye %%" "later %% %VAR{smiles}" "I miss %% already" "never enough time in the day.." }
-
-cMotion_abstract_register "departs-nasty"
-cMotion_abstract_batchadd "departs-nasty" { "i don't like them" "i hope they don't come back" "%%: AND DON'T COME BACK!" "%%: don't let the door hit your ass on the way out%|because I don't want ass-prints on my new door!" }
+cMotion_abstract_register "departsNice" { "bye %%" "later %% %VAR{smiles}" "I miss %% already" "never enough time in the day.." }
+cMotion_abstract_register "departsNasty" { "i don't like them" "i hope they don't come back" "%%: AND DON'T COME BACK!" "%%: don't let the door hit your ass on the way out%|because I don't want ass-prints on my new door!" }

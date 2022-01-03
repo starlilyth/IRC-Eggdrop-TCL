@@ -9,6 +9,9 @@ set cMotionData "$cMotionRoot/data"
 set cMotionLocal "$cMotionRoot/local"
 putlog "cMotion $cMotionVersion starting up..."
 
+package require sqlite3
+set absdb "$cMotionRoot/cMotion.db"
+
 # test mode or no? 
 set cMotion_testing 0
 if {$cMotion_testing == 0} {

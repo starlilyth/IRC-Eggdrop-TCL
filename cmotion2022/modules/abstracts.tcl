@@ -45,14 +45,6 @@
 # fileformat is simply one per line.
 ## Wha? Oh hi, SQLite data storage, yes thats the plan. Then we can ditch all this caching biz. 
 
-package require sqlite3
-set absdb "$cMotionRoot/abstracts.db"
-if {![file exists $absdb]} {
-  sqlite3 adb $absdb
-    adb eval {CREATE TABLE test_table(entry TEXT NOT NULL COLLATE NOCASE)}
-  adb close
-}
-
 if { [cMotion_setting_get "abstractMaxAge"] != "" } {
   set cMotion_abstract_max_age [cMotion_setting_get "abstractMaxAge"]
 } else {
@@ -84,74 +76,36 @@ cMotion_counter_init "abstracts" "gets"
 # if dir doesnt exist, create it!
 set cMotion_abstract_dir "$cMotionLocal/abstracts/$cMotionSettings(deflang)"
 
-# garbage collect the abstracts arrays
-proc cMotion_abstract_gc { } {
-	cMotion_putloglev 5 * "cMotion_abstract_gc"
-  global cMotion_abstract_contents cMotion_abstract_timestamps
-  global cMotion_abstract_max_age cMotion_abstract_ondisk
-  global cMotionSettings cMotion_abstract_languages
-  set lang $cMotionSettings(deflang)
-
-  cMotion_putloglev 2 * "Garbage collecting abstracts..."
-
-  cMotion_counter_incr "abstracts" "gc"
-
-  set abstracts [array names cMotion_abstract_contents]
-  set limit [expr [clock seconds] - $cMotion_abstract_max_age]
-
-  set expiredList ""
-  set expiredCount 0
-
-  foreach abstract $abstracts {
-    if {($cMotion_abstract_timestamps($abstract) < $limit) && ($cMotion_abstract_timestamps($abstract) > 0) || $cMotion_abstract_languages($abstract) != $lang } {
-      append expiredList "$abstract "
-      incr expiredCount
-      unset cMotion_abstract_contents($abstract)
-      unset cMotion_abstract_languages($abstract)
-      set cMotion_abstract_timestamps($abstract) 0
-      lappend cMotion_abstract_ondisk $abstract
-      cMotion_counter_incr "abstracts" "pageouts"
-    }
-  }
-
-  if {$expiredList != ""} {
-    cMotion_putloglev d * "expired $expiredCount abstracts: $expiredList"
-  }
-}
-
 proc cMotion_abstract_register { abstract { stuff "" } } {
 	cMotion_putloglev 5 * "cMotion_abstract_register ($abstract)"
   #global cMotionData cMotion_testing
   global cMotionSettings absdb cMotion_abstract_dir
   global cMotion_abstract_contents cMotion_abstract_timestamps
 	global cMotion_abstract_last_get cMotion_abstract_languages
+  set lang $cMotionSettings(deflang)
 
   #set timestamp to now
   set cMotion_abstract_timestamps($abstract) [clock seconds]
-  set lang $cMotionSettings(deflang)
 	set cMotion_abstract_last_get($abstract) ""
 
+# Old method
   #load any existing abstracts
   if [file exists "$cMotion_abstract_dir/${abstract}.txt"] {
+
     cMotion_abstract_load $abstract
+
   } else {
-
-    ## DB table creation
-    sqlite3 adb $absdb
-      adb eval {CREATE TABLE $abstract(entry TEXT NOT NULL COLLATE NOCASE)}
-    adb close
-
-
     # check that the language directory exists while we're at it
     if { ![file exists $cMotion_abstract_dir] } {
       [file mkdir $cMotion_abstract_dir]
     }
-    #file doesn't exist - create an empty one
+
     #create blank array for it
     set cMotion_abstract_contents($abstract) [list]
     set cMotion_abstract_languages($abstract) "$lang"
-    cMotion_putloglev 1 * "Creating new abstract file for $abstract"
 
+    #file doesn't exist - create an empty one
+    cMotion_putloglev 1 * "Creating new abstract file for $abstract"
     set fileHandle [open "$cMotion_abstract_dir/${abstract}.txt" "w"]
     puts $fileHandle " "
   }
@@ -159,6 +113,21 @@ proc cMotion_abstract_register { abstract { stuff "" } } {
     close $fileHandle
   }
 
+# New method
+  # if { abstract table exists } {
+  #  cMotion_abstract_load $abstract
+  # } else {
+    #create blank array for it
+  #  set cMotion_abstract_contents($abstract) [list]
+  #  set cMotion_abstract_languages($abstract) "$lang"
+
+    # DB table creation. Use UNIQUE constraint to prevent duplicate entries
+    set tableName "abs_$lang\_$abstract"
+    sqlite3 adb $absdb
+    adb eval "CREATE TABLE IF NOT EXISTS $tableName (entry TEXT NOT NULL COLLATE NOCASE UNIQUE)"
+  # }
+
+# Add data
 	if {$stuff != ""} {
 		# batch-add at the same time
 		cMotion_putloglev d * "Batchadding during registration for $abstract"
@@ -177,18 +146,16 @@ proc cMotion_abstract_batchadd { abstract stuff } {
 proc cMotion_abstract_add { abstract text {save 1} } {
 	cMotion_putloglev 5 * "cMotion_abstract_add ($abstract, $text, $save)"
   global cMotion_abstract_contents cMotion_abstract_timestamps cMotion_abstract_max_age
-  global cMotionData cMotionSettings
-	global cMotion_abstract_dir
+  global cMotion_abstract_dir cMotionSettings absdb
   set lang $cMotionSettings(deflang)
-
   cMotion_putloglev 2 * "Adding '$text' to abstract '$abstract'"
 
+# Old way
   if {$cMotion_abstract_timestamps($abstract) < [expr [clock seconds] - $cMotion_abstract_max_age]} {
     #cMotion_abstract_load $abstract
     #new more efficient way
     # - append it to the file regardless
     # - it can be filtered on load
-
     cMotion_putloglev 2 * "updating abstracts '$abstract' on disk"
     if {$save} {
       set fileHandle [open "$cMotion_abstract_dir/${abstract}.txt" "a+"]
@@ -197,7 +164,6 @@ proc cMotion_abstract_add { abstract text {save 1} } {
     }
     return
   }
-
   if {[lsearch -exact $cMotion_abstract_contents($abstract) $text] == -1} {
     lappend cMotion_abstract_contents($abstract) $text
     if {$save} {
@@ -207,6 +173,15 @@ proc cMotion_abstract_add { abstract text {save 1} } {
       close $fileHandle
     }
   }
+
+# New way
+  set tableName "abs_$lang\_$abstract"
+  sqlite3 adb $absdb
+  catch {
+    adb eval "INSERT INTO $tableName VALUES (:text)"
+  } err
+  # dont return error on unique constraint violation, we are using this to filter duplicates
+  if {[string match "UNIQUE *" $err]} {return 0}
 }
 
 proc cMotion_abstract_save { abstract } {
@@ -336,7 +311,6 @@ proc cMotion_abstract_all { abstract } {
 		catch {
 			global $abstract
 			set var [subst $$abstract]
-
 			return $var
 		}
 		cMotion_putloglev d * "cMotion_abstract_all: $abstract doesn't exist as a global variable either :("
@@ -422,6 +396,41 @@ proc cMotion_abstract_delete { abstract index } {
 
   set cMotion_abstract_contents($abstract) [lreplace $cMotion_abstract_contents($abstract) $index $index]
   cMotion_abstract_save $abstract
+}
+
+# garbage collect the abstracts arrays
+proc cMotion_abstract_gc { } {
+  cMotion_putloglev 5 * "cMotion_abstract_gc"
+  global cMotion_abstract_contents cMotion_abstract_timestamps
+  global cMotion_abstract_max_age cMotion_abstract_ondisk
+  global cMotionSettings cMotion_abstract_languages
+  set lang $cMotionSettings(deflang)
+
+  cMotion_putloglev 2 * "Garbage collecting abstracts..."
+
+  cMotion_counter_incr "abstracts" "gc"
+
+  set abstracts [array names cMotion_abstract_contents]
+  set limit [expr [clock seconds] - $cMotion_abstract_max_age]
+
+  set expiredList ""
+  set expiredCount 0
+
+  foreach abstract $abstracts {
+    if {($cMotion_abstract_timestamps($abstract) < $limit) && ($cMotion_abstract_timestamps($abstract) > 0) || $cMotion_abstract_languages($abstract) != $lang } {
+      append expiredList "$abstract "
+      incr expiredCount
+      unset cMotion_abstract_contents($abstract)
+      unset cMotion_abstract_languages($abstract)
+      set cMotion_abstract_timestamps($abstract) 0
+      lappend cMotion_abstract_ondisk $abstract
+      cMotion_counter_incr "abstracts" "pageouts"
+    }
+  }
+
+  if {$expiredList != ""} {
+    cMotion_putloglev d * "expired $expiredCount abstracts: $expiredList"
+  }
 }
 
 proc cMotion_abstract_auto_gc { min hr a b c } {
