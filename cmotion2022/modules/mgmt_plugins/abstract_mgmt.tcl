@@ -3,12 +3,13 @@ proc cMotion_plugin_mgmt_abstract { handle { arg "" }} {
   #abstract show <name>
   if [regexp -nocase {show ([^ ]+)} $arg matches name] {
     set result [cMotion_abstract_all $name]
-    cMotion_putadmin "Abstract $name has [llength $result] items."
-    set i 0
-    foreach a $result {
-      cMotion_putadmin "$i: $a"
-      incr i
-    }
+    cMotion_putadmin "$result"
+    # cMotion_putadmin "Abstract $name has [llength $result] items."
+    # set i 0
+    # foreach a $result {
+    #   cMotion_putadmin "$i: $a"
+    #   incr i
+    # }
     return 0
   }
   #abstract gc
