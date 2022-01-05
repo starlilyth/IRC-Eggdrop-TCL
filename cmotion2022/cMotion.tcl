@@ -1,7 +1,7 @@
 #cMotion core
 
 setudef flag cMotion
-set cMotionVersion "0.3"
+set cMotionVersion "0.4"
 set cMotionRoot "scripts/cmotion2022"
 set cMotionModules "$cMotionRoot/modules"
 set cMotionPlugins "$cMotionRoot/plugins"
