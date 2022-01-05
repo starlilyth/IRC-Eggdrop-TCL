@@ -1,6 +1,6 @@
 # cMotion: mgmt plugin file for abstracts
 proc cMotion_plugin_mgmt_abstract { handle { arg "" }} {
-  #abstract show <name>
+  # abstract show <name>
   if [regexp -nocase {show ([^ ]+)} $arg matches name] {
     set result [cMotion_abstract_all $name]
     # cMotion_putadmin "$result"
@@ -12,42 +12,47 @@ proc cMotion_plugin_mgmt_abstract { handle { arg "" }} {
     }
     return 0
   }
-  #abstract gc
+  # abstract gc
   if [regexp -nocase {gc} $arg matches] {
     cMotion_putadmin "Garbage collecting..."
     cMotion_abstract_gc
     return 0
   }
-  #status
+  # abstract status
   if [regexp -nocase {status} $arg] {
-    global cMotion_abstract_contents cMotion_abstract_timestamps cMotion_abstract_max_age
-    global cMotion_abstract_ondisk
+    global cMotion_abstract_contents cMotion_abstract_timestamps absdb
+    cMotion_putadmin "cMotion abstract lists in memory:"
+    # abstract lists in the array
     set mem 0
-    set disk 0
-    set handles [array names cMotion_abstract_contents]
-    cMotion_putadmin "cMotion abstract info info:\r"
+    set handles [lsort [array names cMotion_abstract_contents]]
     foreach handle $handles {      
       set diff [expr [clock seconds]- $cMotion_abstract_timestamps($handle)]
       cMotion_putadmin "$handle: [llength [cMotion_abstract_all $handle]] items, $diff seconds since used"
       incr mem
     }
-    foreach handle $cMotion_abstract_ondisk {
-      cMotion_putadmin "$handle: on disk"
-      incr disk
+    cMotion_putadmin "\ncMotion abstract lists not in memory:"
+    # count tables in the DB
+    set total 0
+    sqlite3 adb $absdb
+    set tables [lsort [adb eval {SELECT name FROM sqlite_master WHERE type='table';}]]
+    foreach table $tables {
+      set abname [string range $table 7 40]
+      if {[lsearch $handles $abname] == -1} {
+        set itemCount [adb eval "SELECT COUNT() FROM $table"]
+        cMotion_putadmin "$abname: $itemCount items"
+      }
+      incr total
     }
-    cMotion_putadmin "[expr $mem + $disk] total abstracts, $mem loaded, $disk on disk"
+    cMotion_putadmin "\n$total total abstract lists, $mem loaded into memory"
     return 0
   }
-  if [regexp -nocase {info (.+)} $arg matches name] {
-    set result [cMotion_abstract_all $name]
-    cMotion_putadmin "Abstract $name has [llength $result] items.\r"
-    return 0
-  }
+  # abstract delete
   if [regexp -nocase {delete (.+) (.+)} $arg matches name index] {
     cMotion_putadmin "Deleting element $index from abstract $name...\r"
     cMotion_abstract_delete $name $index
     return 0
   }
+  # abstract flush
 	if [regexp -nocase "flush" $arg] {
 		cMotion_abstract_flush
 		cMotion_putadmin "Flushing all abstracts from memory"
@@ -60,8 +65,6 @@ proc cMotion_plugin_mgmt_abstract { handle { arg "" }} {
 
 proc cMotion_plugin_mgmt_abstract_help { } {
 	cMotion_putadmin "Manage abstracts in cMotion."
-	cMotion_putadmin "  .cMotion abstract info <abstract>"
-	cMotion_putadmin "    Find out info about an abstract"
 	cMotion_putadmin "  .cMotion abstract show <abstract>"
 	cMotion_putadmin "    List the contents of an abstract (Potentially much output!)"
 	cMotion_putadmin "  .cMotion abstract status"

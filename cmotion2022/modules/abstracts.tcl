@@ -92,12 +92,12 @@ proc cMotion_abstract_register { abstract { stuff "" } } {
 proc cMotion_abstract_batchadd { abstract stuff } {
   cMotion_putloglev 1 * "batch-adding to $abstract"
   foreach i $stuff {
-    cMotion_abstract_add $abstract $i 0
+    cMotion_abstract_add $abstract $i
   }
 }
 
-proc cMotion_abstract_add { abstract text {save 1} } {
-	cMotion_putloglev 5 * "cMotion_abstract_add ($abstract, $text, $save)"
+proc cMotion_abstract_add { abstract text } {
+	cMotion_putloglev 5 * "cMotion_abstract_add ($abstract, $text)"
   global cMotion_abstract_contents cMotion_abstract_timestamps cMotion_abstract_max_age absdb cMotionSettings
   set lang $cMotionSettings(deflang)
   cMotion_putloglev 2 * "updating abstract '$abstract' with $text"
@@ -312,8 +312,7 @@ proc cMotion_abstract_revive_language { } {
     cMotion_putloglev 2 * "cMotion: language not found, cannot revive"
     return -1
   }
-
-  # if the default abstracts exists, use it first
+  # if the default abstract list exists, load it first
   if { [file exists "$cMotionData/abstracts/$lang/abstracts.tcl"] } {
 		cMotion_putloglev d * "loading system abstracts for lang $lang"
     catch {
@@ -322,23 +321,12 @@ proc cMotion_abstract_revive_language { } {
   } else {
     cMotion_putloglev 2 * "cMotion: language default abstracts not found"
   }
-	# then we need to load any others
-	set files [glob -nocomplain "$cMotionData/abstracts/$lang/*.txt"]
-	if { [llength $files] > 0} {
-		foreach f $files {
-			set pos [expr [string last "/" $f] + 1]
-			set dot [expr [string last ".txt" $f] - 1]
-			set abstract [string range $f $pos $dot]
-			cMotion_putloglev 2 * "checking $abstract"
-			set len 0
-			catch { set len [llength $cMotion_abstract_contents($abstract)] } val
-			if { $val != "$len" } {
-				cMotion_abstract_load $abstract
-			}
-		}
-	}
-
-
+  # Other abstract lists
+  set abfiles [glob -nocomplain "$cMotionData/abstracts/$lang/*abstracts.tcl"]
+  foreach ab $abfiles {
+    source $ab
+  }
+  cMotion_putloglev d * "loaded abstracts data"
 }
 
 # we have to revive at least one language

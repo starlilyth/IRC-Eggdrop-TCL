@@ -123,9 +123,7 @@ proc cMotionStats {nick host handle channel text} {
   global botnick 
   if {(![regexp -nocase $botnick $text])} { return 0 }
   global cMotion_abstract_contents cMotion_abstract_timestamps cMotion_abstract_max_age
-  global cMotion_abstract_ondisk
   set mem [llength [array names cMotion_abstract_contents]]
-  set disk [llength $cMotion_abstract_ondisk]
   set faults [cMotion_counter_get "abstracts" "faults"]
   set pageouts [cMotion_counter_get "abstracts" "pageouts"]
   global cMotionFacts
