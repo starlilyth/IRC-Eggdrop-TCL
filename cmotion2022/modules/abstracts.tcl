@@ -2,7 +2,6 @@
 # NOTE: This module should be loaded before plugins as they will need it to register abstracts
 #
 # The idea is that abstracts are stored in a db, and loaded into memory when needed.
-#
 # At some point they're unloaded (i.e. deallocated) out of memory to free up space.
 # This is done by deallocating them 5 mins after their last use.
 #
@@ -27,12 +26,7 @@
 #   cMotion_abstract_load(abstract): load the abstract list into memory from DB
 #
 # Admin plugin to be loaded (but not from this module):
-#   !bmadmin abstract (add|list|view|del(ete)?|cache|gc) ...
-#
-#
-# The abstracts will be stored in ./abstracts/<language>/<abstract name>.txt in the cMotion directory. The
-# fileformat is simply one per line.
-
+#   !cmadmin abstract (add|list|view|delete|gc) ...
 
 if { [cMotion_setting_get "abstractMaxAge"] != "" } {
   set cMotion_abstract_max_age [cMotion_setting_get "abstractMaxAge"]
@@ -78,7 +72,7 @@ proc cMotion_abstract_register { abstract { stuff "" } } {
     #create blank array for it
     set cMotion_abstract_contents($abstract) [list]
     set cMotion_abstract_languages($abstract) "$lang"
-    # DB table creation. Use UNIQUE constraint to prevent duplicate entries
+    # DB table creation. Uses UNIQUE constraint to prevent duplicate entries
     adb eval "CREATE TABLE IF NOT EXISTS $tableName (entry TEXT NOT NULL COLLATE NOCASE UNIQUE)"
     # Add data
   	if {$stuff != ""} {
@@ -277,7 +271,6 @@ proc cMotion_abstract_auto_gc { min hr a b c } {
 }
 bind time - "* * * * *" cMotion_abstract_auto_gc
 
-
 # flush all of the abstracts to disk
 # this was created for changing languages on the fly. If you're using this
 # for some other reason, then you might want to be sure.
@@ -322,7 +315,7 @@ proc cMotion_abstract_revive_language { } {
     cMotion_putloglev 2 * "cMotion: language default abstracts not found"
   }
   # Other abstract lists
-  set abfiles [glob -nocomplain "$cMotionData/abstracts/$lang/*abstracts.tcl"]
+  set abfiles [glob -nocomplain "$cMotionData/abstracts/$lang/*-abstracts.tcl"]
   foreach ab $abfiles {
     source $ab
   }

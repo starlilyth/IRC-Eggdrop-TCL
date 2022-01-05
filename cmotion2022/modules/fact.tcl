@@ -152,5 +152,3 @@ catch {
     cMotion_facts_load
   }
 }
-
-putlog "loaded fact module"

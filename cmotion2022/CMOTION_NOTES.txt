@@ -2,6 +2,9 @@
 Randomly use handle (in bot userlist) instead of nick. 
 Random output - check for time of day field (modules)
 Select recent random person to address (modules)
+random output sorted by last used date, then random from oldest 10.
+random says also pulled from entire abstracts DB ? use/dontuse flag on batchadd?
+nicks need to be tracked for friendship [cMotionIsFriend (cMotionGetAltName)]?
 Validate plugins on load
 
 -- New Plugins --
@@ -18,19 +21,8 @@ Tcl error in script for 'timer66417':
 can't read "cMotionLastEvent(#silentchan)": no such element in array 
 
 
---DATABASE CONVERSION--
-  abstracts.tcl - 
-      batchadd to sqliteDB (rework abstracts.tcl): 
-      --if {![table in db]} {create} else { if {list length != tablelength} {drop/recreate} }
-      this fails with xtra fields in db (last used), so do: 
-      in batchadd; load abstract into arrays from textfile and db and compare 
-      matched lines go back to db, then add new and delete missing from text array 
 
-       + reload/drop command in mgmt plugin
 
-      random output sorted by last used date, then random from oldest 10. 
-      random says also pulled from entire abstracts DB ? use/dontuse flag on batchadd?
-      nicks need to be tracked for friendship [cMotionIsFriend (cMotionGetAltName)]?
 
 
 
