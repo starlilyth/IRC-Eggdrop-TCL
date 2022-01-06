@@ -29,7 +29,7 @@ proc cMotion_plugin_text_get_fact { nick host handle channel text } {
 cMotion_abstract_register "get_fact_intros"
 cMotion_abstract_batchadd "get_fact_intros" {
   "I think I heard that"
-  "last time I knew, "
+  "last I knew, "
   "it could be that"
   "ok, I'll tell you that"
   "well, don't tell anyone, but%REPEAT{3:7:.}"

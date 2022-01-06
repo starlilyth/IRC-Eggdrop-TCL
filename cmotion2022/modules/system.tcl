@@ -134,7 +134,7 @@ proc cMotionStats {nick host handle channel text} {
     incr itemcount
     incr factcount [llength $cMotionFacts($item)]
   }
-  putchan $channel "abstracts: [expr $mem + $disk] total, $mem loaded, $disk on disk, $faults faults, $pageouts pageouts. [cMotion_counter_get abstracts gc] garbage collections, [cMotion_counter_get abstracts gets] fetches"
+  putchan $channel "abstracts: $mem loaded, $faults faults, $pageouts pageouts. [cMotion_counter_get abstracts gc] garbage collections, [cMotion_counter_get abstracts gets] fetches"
   putchan $channel "facts: $factcount facts about $itemcount items"
   putchan $channel "plugins fired: text [cMotion_counter_get events textplugins], action [cMotion_counter_get events actionplugins]"
   putchan $channel "output: lines sent to output: [cMotion_counter_get output lines], lines sent to irc: [cMotion_counter_get output irclines]"

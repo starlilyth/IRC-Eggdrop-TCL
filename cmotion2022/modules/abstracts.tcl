@@ -220,19 +220,38 @@ proc cMotion_abstract_delete { abstract index } {
 	cMotion_putloglev 5 * "cMotion_abstract_delete ($abstract, $index)"
   global cMotion_abstract_contents cMotion_abstract_timestamps absdb cMotion_abstract_max_age cMotion_abstract_languages
   if [info exists cMotion_abstract_timestamps($abstract)] {
-    # load abstract into memory if it isnt already
-    if {$cMotion_abstract_timestamps($abstract) < [expr [clock seconds] - $cMotion_abstract_max_age]} {
-      cMotion_abstract_load $abstract
-    }
-    set itemName [lindex $cMotion_abstract_contents($abstract) $index]
-    # delete from memory
-    set cMotion_abstract_contents($abstract) [lreplace $cMotion_abstract_contents($abstract) $index $index]
-    # update the DB table
-    set absLang $cMotion_abstract_languages($abstract)
-    set tableName "abs_$absLang\_$abstract"
-    sqlite3 adb $absdb
-    catch {
-      adb eval "DELETE FROM $tableName WHERE entry = :itemName"
+    if {$index eq $abstract} {
+      # delete list
+      #delete table from DB
+      set absLang $cMotion_abstract_languages($abstract)
+      set tableName "abs_$absLang\_$abstract"
+      sqlite3 adb $absdb
+      catch {
+        adb eval "DROP TABLE $tableName"
+      }
+      # delete from memory
+      if {$cMotion_abstract_timestamps($abstract) > [expr [clock seconds] - $cMotion_abstract_max_age]} {
+        unset cMotion_abstract_contents($abstract)
+        unset cMotion_abstract_timestamps($abstract)
+        unset cMotion_abstract_languages($abstract)
+      }
+    } else {
+      # delete item from list
+      # load abstract into memory if it isnt already
+      if {$cMotion_abstract_timestamps($abstract) < [expr [clock seconds] - $cMotion_abstract_max_age]} {
+        cMotion_abstract_load $abstract
+      }
+      set itemName [lindex $cMotion_abstract_contents($abstract) $index]
+      # delete from memory
+      set cMotion_abstract_contents($abstract) [lreplace $cMotion_abstract_contents($abstract) $index $index]
+      # update the DB table
+      set absLang $cMotion_abstract_languages($abstract)
+      set tableName "abs_$absLang\_$abstract"
+      sqlite3 adb $absdb
+      catch {
+        adb eval "DELETE FROM $tableName WHERE entry = :itemName"
+      }
+
     }
   } else {
     #abstract doesn't exist

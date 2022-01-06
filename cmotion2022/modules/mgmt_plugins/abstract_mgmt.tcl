@@ -42,7 +42,11 @@ proc cMotion_plugin_mgmt_abstract { handle { arg "" }} {
   }
   # abstract delete
   if [regexp -nocase {delete (.+) (.+)} $arg matches name index] {
-    cMotion_putadmin "Deleting element $index from abstract $name...\r"
+    if {$name eq $index} {
+      cMotion_putadmin "Deleting abstract list $index\n"
+    } else {
+      cMotion_putadmin "Deleting element $index from abstract $name\n"
+    }
     cMotion_abstract_delete $name $index
     return 0
   }
