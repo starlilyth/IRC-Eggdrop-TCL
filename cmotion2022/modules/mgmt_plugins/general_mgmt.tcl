@@ -13,7 +13,7 @@ cMotion_plugin_add_mgmt "version" "^version" n "cMotion_plugin_mgmt_version"
 #################################################################################################################################
 # Declare plugin functions
 proc cMotion_plugin_mgmt_status { handle { args "" } } {
-  global botnicks cMotionSettings cMotionVersion cMotionChannels cMotion_SLEEP botnick
+  global botnicks cMotionSettings cMotionVersion cMotionChannels botnick
 	cMotion_update_chanlist 
 	cMotion_check_botnicks
 	cMotion_putadmin "I AM $botnick! I'm powered by cMotion $cMotionVersion and I'm $cMotionSettings(gender)."

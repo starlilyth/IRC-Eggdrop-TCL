@@ -20,22 +20,24 @@ if {![info exists cMotionFacts]} {
   adb eval "CREATE TABLE IF NOT EXISTS facts (item TEXT NOT NULL COLLATE NOCASE, fact TEXT NOT NULL COLLATE NOCASE UNIQUE)"
 }
 proc cMotion_facts_load { } {
-  global cMotionFacts cMotion_testing
-	if {$cMotion_testing == 1} {
-		return 0
-	}
+  global cMotionFacts
   cMotion_putloglev 1 * "Attempting to load facts from DB"
-  set rows [adb eval {SELECT item,fact FROM facts}]
-  foreach row $rows {
-
-#putlog "fact row: $row"
-
-    # regexp {([^ ]+) (.+)} $line matches item fact
-
-    # if {![info exists cMotionFacts($item)]} {
-    #   set cMotionFacts($item) [list]
-    # }
-    # lappend cMotionFacts($item) $fact
+  # get the list of items and facts
+  set abList [adb eval {SELECT item,fact FROM facts}]
+  # loop through the list
+  while {[llength $abList] > 0 } {
+    # assign first two elements to our vars
+    lassign $abList item fact
+    # create item list if it doesnt exist
+    if {![info exists cMotionFacts($item)]} {
+      set cMotionFacts($item) [list]
+    }
+    # add the entry to memory if it isnt present already
+    if {[lsearch -exact $cMotionFacts($item) $fact] == -1} {
+      lappend cMotionFacts($item) $fact
+    }
+    # remove the first two elements and loop again
+    set abList [lreplace $abList 0 1]
   }
 }
 
@@ -80,15 +82,25 @@ proc cMotion_facts_auto_save { min hr a b c } {
   putlog "cMotion: autosaving facts..."
   cMotion_facts_save
 }
-
-proc cMotion_facts_forget_all { fact } {
-  global cMotionFacts
-  #drop the array element
-  unset cMotionFacts($fact)
-}
-
 # save facts every hour
 bind time - "01 * * * *" cMotion_facts_auto_save
+
+proc cMotion_facts_forget_all { type item } {
+  global cMotionFacts absdb
+  if [info exists cMotionFacts($type,$item)] {
+    cMotion_putadmin "Dropping all facts about $item ($type)"
+    # drop the array element
+    unset cMotionFacts($type,$item)
+    # delete DB entry
+    set tytem "$type,$item"
+    sqlite3 adb $absdb
+    catch {
+      adb eval "DELETE FROM facts WHERE item = :tytem"
+    }
+  } else {
+    cMotion_putadmin "No facts found for $item ($type)"
+  }
+}
 
 # load facts at startup
 catch {

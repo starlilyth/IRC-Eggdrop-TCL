@@ -1,14 +1,14 @@
-# cMotion learn facts ACTION plugin
-# This learns facts from actions on channel. See also: learnfact_text.tcl
+# cMotion learn facts TEXT plugin
+# This learns facts from text on channel. See also: learnfact_action.tcl
 #
 # regexp to stop learning of facts
 set cMotionSettings(ignorefacts) "is online"
 
-cMotion_plugin_add_action "fact" "(is|was|==?|am|are|were)" 100 cMotion_plugin_action_fact "en"
+cMotion_plugin_add_text "fact" "(is|was|==?|am|are|were)" 100 cMotion_plugin_text_fact "en"
 
-proc cMotion_plugin_action_fact { nick host handle channel text } {
+proc cMotion_plugin_text_fact { nick host handle channel text } {
   global cMotionFacts cMotionFactTimestamps
-  cMotion_putloglev d * "Action fact learning triggered.."
+  cMotion_putloglev d * "Text fact learning triggered.."
 
   # ignore set ignorewords
   set ignoretext [cMotion_setting_get "ignorefacts"]
@@ -21,12 +21,16 @@ proc cMotion_plugin_action_fact { nick host handle channel text } {
 	if [string match "*answer was*" $text] {
 		return 0
 	}
+  #don't let synchro trigger us
+  if [string match "(ready to burn|ready for another)" $text] {
+    return 0
+  }
   # skip questions
   if {[string range $text end end] == "?"} { return 0 }
 
   # get a string
   if [regexp -nocase {(\w+)\s+(is|was|==?|am|are|were)\s+(.*)} $text matches item blah fact] {
-    cMotion_putloglev d * "Action fact learning matched!"
+    cMotion_putloglev d * "Text fact learning matched!"
     set item [string tolower $item]
     # skip facts that are too short or long
     if {([string length $fact] < 3) || ([string length $fact] > 30)} { return 0 }

@@ -4,7 +4,7 @@ proc cMotion_plugin_mgmt_fact { handle { arg "" }} {
   # fact show <type> <name>
   if [regexp -nocase {show ([^ ]+) ([^ ]+)} $arg matches t name] {
     set known $cMotionFacts($t,$name)
-    cMotion_putadmin "Known '$t' facts about: $name"
+    cMotion_putadmin "Known '$t' facts about '$name':"
     set count 0
     foreach fact $known {
       cMotion_putadmin "$count: $fact"
@@ -17,9 +17,10 @@ proc cMotion_plugin_mgmt_fact { handle { arg "" }} {
     set items [lsort [array names cMotionFacts]]
     set itemcount 0
     set factcount 0
-    #cMotion_putadmin "Known facts:"
+    cMotion_putadmin "Known facts: <item> (<type>)"
     foreach item $items {
-      #cMotion_putadmin "$item ([llength $cMotionFacts($item)])"
+      lassign [split $item ","] type subj
+      cMotion_putadmin "$subj ($type): [llength $cMotionFacts($item)] facts"
       incr itemcount
       incr factcount [llength $cMotionFacts($item)]
     }
@@ -28,14 +29,32 @@ proc cMotion_plugin_mgmt_fact { handle { arg "" }} {
   }
   # save
   if [regexp -nocase {save} $arg] {
-    cMotion_putadmin "saving facts..."
+    cMotion_putadmin "Saving facts..."
     cMotion_facts_save
     return 0
   }
-
+  # forget
+  if [regexp -nocase {forget ([^ ]+) ([^ ]+)} $arg matches type item] {
+    cMotion_facts_forget_all $type $item
+    return 0
+  }
   #all else fails, list help
-  cMotion_putadmin {use: fact [show <type> <name>|status]}
+  cMotion_putadmin "Try .cmotion help fact"
+  return 0
+}
+
+proc cMotion_plugin_mgmt_fact_help { } {
+  cMotion_putadmin "Manage facts in cMotion:"
+  cMotion_putadmin "  .cmotion fact status"
+  cMotion_putadmin "    Facts system status"
+  cMotion_putadmin "  .cmotion fact show <type> <item>"
+  cMotion_putadmin "    Fact details about an item"
+  cMotion_putadmin "    Ex: '.cmotion fact show what cMotion'"
+  cMotion_putadmin "  .cmotion fact save"
+  cMotion_putadmin "    Saves in memory facts to DB"
+  cMotion_putadmin "  .cmotion fact forget <type> <item>"
+  cMotion_putadmin "    Removes in memory facts about <item>"
   return 0
 }
 # register the plugin
-cMotion_plugin_add_mgmt "fact" "^fact" n "cMotion_plugin_mgmt_fact" "any"
+cMotion_plugin_add_mgmt "fact" "^fact" n "cMotion_plugin_mgmt_fact" "any" "cMotion_plugin_mgmt_fact_help"

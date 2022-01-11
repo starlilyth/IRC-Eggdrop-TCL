@@ -435,11 +435,14 @@ cMotion_plugin_add_mgmt "plugin" "^plugin" n "cMotion_plugin_mgmt_plugins" "any"
 proc cMotion_plugin_mgmt_plugins { handle { arg "" }} {
   #plugin remove <type> <id>
   if [regexp -nocase {remove ([^ ]+) (.+)} $arg matches t id] {
-    cMotion_putadmin "Removing $t plugin $id..."
     set full_array_name_for_upvar "cMotion_plugins_$t"
     upvar #0 $full_array_name_for_upvar TEH_ARRAY
-    unset TEH_ARRAY($id)
-    cMotion_putadmin "...done."
+    if [info exists TEH_ARRAY($id)] {
+      unset TEH_ARRAY($id)
+      cMotion_putadmin "Removed $t plugin $id."
+    } else {
+      cMotion_putadmin "Plugin ${t}:$id not found."
+    }
     return 0
   }
   #enable a plugin
@@ -486,13 +489,18 @@ proc cMotion_plugin_mgmt_plugins { handle { arg "" }} {
     #invalid plugin to enable
     cMotion_putadmin "That's not a valid plugin type."
   }
+  # plugin info
   if [regexp -nocase {info ([^ ]+) (.+)} $arg matches t id] {
     set full_array_name_for_upvar "cMotion_plugins_$t"
     upvar #0 $full_array_name_for_upvar TEH_ARRAY
-    cMotion_putadmin "plugin details for ${t}:$id = $TEH_ARRAY($id)"
+    if [info exists TEH_ARRAY($id)] {
+      cMotion_putadmin "Plugin details for ${t}:$id = $TEH_ARRAY($id)"
+    } else {
+      cMotion_putadmin "Plugin ${t}:$id not found."
+    }
     return 0
   }
-  #all else fails, list the modules:
+  # list the plugins
   if [regexp -nocase {list( (.+))?} $arg matches what re] {
   set total 0
     if {$re != ""} {

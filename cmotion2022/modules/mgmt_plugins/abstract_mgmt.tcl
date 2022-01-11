@@ -68,7 +68,7 @@ proc cMotion_plugin_mgmt_abstract { handle { arg "" }} {
 }
 
 proc cMotion_plugin_mgmt_abstract_help { } {
-	cMotion_putadmin "Manage abstracts in cMotion."
+	cMotion_putadmin "Manage abstracts in cMotion:"
 	cMotion_putadmin "  .cMotion abstract show <abstract>"
 	cMotion_putadmin "    List the contents of an abstract (Potentially much output!)"
 	cMotion_putadmin "  .cMotion abstract status"
@@ -76,6 +76,7 @@ proc cMotion_plugin_mgmt_abstract_help { } {
 	cMotion_putadmin "  .cMotion abstract delete <abstract> <index>"
 	cMotion_putadmin "    Delete an element from an abstract"
 	cMotion_putadmin "    Index is 0-based; use the show command to find entries"
+  cMotion_putadmin "    Use abstract name as index to delete the entire list"
 	cMotion_putadmin "  .cMotion abstract gc"
 	cMotion_putadmin "    Force a garbage collection of abstracts (pages out unused ones)"
 	cMotion_putadmin "  .cMotion abstract flush"
