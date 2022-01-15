@@ -1,14 +1,18 @@
 # cMotion: admin plugin file for facts
 proc cMotion_plugin_mgmt_fact { handle { arg "" }} {
   global cMotionFacts
-  # fact show <type> <name>
-  if [regexp -nocase {show ([^ ]+) ([^ ]+)} $arg matches t name] {
-    set known $cMotionFacts($t,$name)
-    cMotion_putadmin "Known '$t' facts about '$name':"
-    set count 0
-    foreach fact $known {
-      cMotion_putadmin "$count: $fact"
-      incr count
+  # fact show <type> <item>
+  if [regexp -nocase {show ([^ ]+) ([^ ]+)} $arg matches type item] {
+    if [info exists cMotionFacts($type,$item)] {
+      set known $cMotionFacts($type,$item)
+      cMotion_putadmin "Known '$type' facts about '$item':"
+      set count 0
+      foreach fact $known {
+        cMotion_putadmin "$count: $fact"
+        incr count
+      }
+    } else {
+      cMotion_putadmin "No facts found for $item ($type)"
     }
     return 0
   }

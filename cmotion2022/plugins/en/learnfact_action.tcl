@@ -21,6 +21,10 @@ proc cMotion_plugin_action_fact { nick host handle channel text } {
 	if [string match "*answer was*" $text] {
 		return 0
 	}
+  #don't let synchro trigger us
+  if [string match "(ready|burn|burning)" $text] {
+    return 0
+  }
   # skip questions
   if {[string range $text end end] == "?"} { return 0 }
 
@@ -34,6 +38,8 @@ proc cMotion_plugin_action_fact { nick host handle channel text } {
     if [regexp "(who|why|what|which|when|where|there|then|this|that|you|yours|he|she|we|it|to|have|and|am)" $item] {
       return 0
     }
+    # remove non word chars
+    regsub -all {!(\w|-)} $fact {} fact
     set type "what"
     # set first person subjects to speakers nick
     if {$item eq "i"} {
@@ -50,10 +56,20 @@ proc cMotion_plugin_action_fact { nick host handle channel text } {
       regsub {\mmy\M} $fact "%OWNER{$nick}" fact
       set type "who"
     }
-
-    cMotion_putloglev d * "fact: $item ($type) == $fact"
-    lappend cMotionFacts($type,$item) $fact
-    set cMotionFactTimestamps($type,$item) [clock seconds]
+    set addFact 0
+    if [info exists cMotionFacts($type,$item)] {
+      if {[lsearch -exact $cMotionFacts($type,$item) $fact] == -1} {
+        set addFact 1
+      }
+    } else {
+      set addFact 1
+    }
+    if {$addFact > 0} {
+      putlog "fact: $item ($type) == $fact"
+      cMotion_putloglev d * "fact: $item ($type) == $fact"
+      lappend cMotionFacts($type,$item) $fact
+      set cMotionFactTimestamps($type,$item) [clock seconds]
+    }
   }
 	#return 0 because we don't put anything to irc, so we shouldn't get in the way
   return 0
