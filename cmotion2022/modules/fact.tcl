@@ -85,20 +85,33 @@ proc cMotion_facts_auto_save { min hr a b c } {
 # save facts every hour
 bind time - "01 * * * *" cMotion_facts_auto_save
 
-proc cMotion_facts_forget_all { type item } {
+proc cMotion_fact_forget_fact { type item fact } {
   global cMotionFacts absdb
-  if [info exists cMotionFacts($type,$item)] {
-    cMotion_putadmin "Dropping all facts about $item ($type)"
-    # drop the array element
-    unset cMotionFacts($type,$item)
-    # delete DB entry
-    set tytem "$type,$item"
-    sqlite3 adb $absdb
-    catch {
-      adb eval "DELETE FROM facts WHERE item = :tytem"
-    }
-  } else {
-    cMotion_putadmin "No facts found for $item ($type)"
+  set item_list $cMotionFacts($type,$item)
+  set fact_data [lindex $item_list $fact]
+
+  # delete from memory
+  set item_list [lreplace $item_list $fact $fact]
+  set cMotionFacts($type,$item) $item_list
+
+  # delete from DB
+  set tytem "$type,$item"
+  sqlite3 adb $absdb
+  catch {
+    adb eval "DELETE FROM facts WHERE item = :tytem AND fact = :fact_data"
+  }
+
+}
+
+proc cMotion_facts_delete_all { type item } {
+  global cMotionFacts absdb
+  # drop the array element
+  unset cMotionFacts($type,$item)
+  # delete DB entry
+  set tytem "$type,$item"
+  sqlite3 adb $absdb
+  catch {
+    adb eval "DELETE FROM facts WHERE item = :tytem"
   }
 }
 

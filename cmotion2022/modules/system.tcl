@@ -119,14 +119,11 @@ proc cMotion_putadmin { text } {
   return 0}
 
 ### cMotionStats 
-proc cMotionStats {nick host handle channel text} {
-  global botnick 
-  if {(![regexp -nocase $botnick $text])} { return 0 }
-  global cMotion_abstract_contents cMotion_abstract_timestamps cMotion_abstract_max_age
+proc cMotionStats { } {
+  global cMotion_abstract_contents cMotionFacts
   set mem [llength [array names cMotion_abstract_contents]]
   set faults [cMotion_counter_get "abstracts" "faults"]
   set pageouts [cMotion_counter_get "abstracts" "pageouts"]
-  global cMotionFacts
   set items [lsort [array names cMotionFacts]]
   set itemcount 0
   set factcount 0
@@ -134,12 +131,12 @@ proc cMotionStats {nick host handle channel text} {
     incr itemcount
     incr factcount [llength $cMotionFacts($item)]
   }
-  putchan $channel "abstracts: $mem loaded, $faults faults, $pageouts pageouts. [cMotion_counter_get abstracts gc] garbage collections, [cMotion_counter_get abstracts gets] fetches"
-  putchan $channel "facts: $factcount facts about $itemcount items"
-  putchan $channel "plugins fired: text [cMotion_counter_get events textplugins], action [cMotion_counter_get events actionplugins]"
-  putchan $channel "output: lines sent to output: [cMotion_counter_get output lines], lines sent to irc: [cMotion_counter_get output irclines]"
-  putchan $channel "system: randomness: [cMotion_counter_get system randomstuff]"
-  putchan $channel "flood: checks: [cMotion_counter_get flood checks]"
+  cMotion_putadmin "abstracts: $mem loaded, $faults faults, $pageouts pageouts. [cMotion_counter_get abstracts gc] garbage collections, [cMotion_counter_get abstracts gets] fetches"
+  cMotion_putadmin "facts: $factcount facts about $itemcount items"
+  cMotion_putadmin "plugins fired: text [cMotion_counter_get events textplugins], action [cMotion_counter_get events actionplugins]"
+  cMotion_putadmin "output: lines sent to output: [cMotion_counter_get output lines], lines sent to irc: [cMotion_counter_get output irclines]"
+  cMotion_putadmin "system: randomness: [cMotion_counter_get system randomstuff]"
+  cMotion_putadmin "flood: checks: [cMotion_counter_get flood checks]"
 }
 
 # check if a channel is active enough for randomy things

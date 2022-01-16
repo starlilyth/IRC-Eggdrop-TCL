@@ -41,6 +41,9 @@ proc cMotion_plugin_mgmt_status { handle { args "" } } {
   if [cMotion_setting_get silence] {
   	cMotion_putadmin "Running silent"
   }
+  # system data
+  cMotion_putadmin "System data:"
+  cMotionStats
   return 0
 }
 
