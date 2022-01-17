@@ -29,7 +29,7 @@ proc cMotion_plugin_text_fact { nick host handle channel text } {
   if {[string range $text end end] == "?"} { return 0 }
 
   # get a string
-  if [regexp -nocase {(\w+)\s+(is|was|==?|am|are|were)\s+(.*)} $text matches item blah fact] {
+  if [regexp -nocase {(\w+)\s+(is|was|==?|am|are|were)\s+(.*)} $text matches item verb fact] {
     cMotion_putloglev d * "Text fact learning matched!"
     set item [string tolower $item]
     # skip facts that are too short or long
@@ -57,17 +57,18 @@ proc cMotion_plugin_text_fact { nick host handle channel text } {
       set type "who"
     }
     set addFact 0
+    set vfact "$verb,$fact"
     if [info exists cMotionFacts($type,$item)] {
-      if {[lsearch -exact $cMotionFacts($type,$item) $fact] == -1} {
+      if {[lsearch -exact $cMotionFacts($type,$item) $vfact] == -1} {
         set addFact 1
       }
     } else {
       set addFact 1
     }
     if {$addFact > 0} {
-      putlog "fact: $item ($type) == $fact"
-      cMotion_putloglev d * "fact: $item ($type) == $fact"
-      lappend cMotionFacts($type,$item) $fact
+      putlog "fact: $item ($type) == $verb -> $fact"
+      cMotion_putloglev d * "fact: $item ($type) == $vfact"
+      lappend cMotionFacts($type,$item) $vfact
       set cMotionFactTimestamps($type,$item) [clock seconds]
     }
   }
