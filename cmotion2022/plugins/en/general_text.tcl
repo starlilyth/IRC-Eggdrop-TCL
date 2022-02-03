@@ -20,13 +20,13 @@ proc cMotion_plugin_text_oww { nick host handle channel text } {
     cMotionDoAction $channel $nick "%VAR{awwws}"
     return 1
 }
-cMotion_plugin_add_text "url-img" {(http|ftp)://([[:alnum:]]+\.)+[[:alnum:]]{2,3}.+\.(jpg|jpeg|gif|png)} 25 cMotion_plugin_text_url-img "en"
+cMotion_plugin_add_text "url-img" {(https|ftp)://([[:alnum:]]+\.)+[[:alnum:]]{2,3}.+\.(jpg|jpeg|gif|png)} 25 cMotion_plugin_text_url-img "en"
 proc cMotion_plugin_text_url-img { nick host handle channel text } {
     cMotionDoAction $channel $nick "%VAR{rarrs}"
     return 1
 }
 ### 
-cMotion_plugin_add_text "url-gen" {(http|ftp)://([[:alnum:]]+\.)+[[:alnum:]]{2,3}} 50 cMotion_plugin_text_url-gen "en"
+cMotion_plugin_add_text "url-gen" {(https|ftp)://([[:alnum:]]+\.)+[[:alnum:]]{2,3}} 50 cMotion_plugin_text_url-gen "en"
 proc cMotion_plugin_text_url-gen { nick host handle channel text } {
     cMotionDoAction $channel $nick "%VAR{bookmarks}"
     return 1

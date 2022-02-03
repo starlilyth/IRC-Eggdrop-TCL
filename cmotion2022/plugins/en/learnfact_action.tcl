@@ -22,7 +22,11 @@ proc cMotion_plugin_action_fact { nick host handle channel text } {
 		return 0
 	}
   #don't let synchro trigger us
-  if [string match "(ready|burn|burning)" $text] {
+  if [regexp -nocase {(burn|synchro|scall)} $text] {
+    return 0
+  }
+  #don't let karma trigger us
+  if [regexp -nocase {(is now \d+)} $text] {
     return 0
   }
   # skip questions

@@ -6,11 +6,11 @@
 #	botname what do you know 
 #	botname tell me something new
 
-cMotion_plugin_add_text "getfact1" "^%botnicks,?:? tell me" 100 cMotion_plugin_text_get_fact "en"
-cMotion_plugin_add_text "getfact2" "^%botnicks,?:? what do you know" 100 cMotion_plugin_text_get_fact "en" 
-cMotion_plugin_add_text "getfact3" "^%botnicks,?:? tell me something new" 100 cMotion_plugin_text_get_fact "en"
+cMotion_plugin_add_text "getfact1" "^%botnicks,?:? whats new" 100 cMotion_plugin_text_random_fact "en"
+cMotion_plugin_add_text "getfact2" "^%botnicks,?:? what do you know" 100 cMotion_plugin_text_random_fact "en"
+cMotion_plugin_add_text "getfact3" "^%botnicks,?:? tell me something" 100 cMotion_plugin_text_random_fact "en"
 
-proc cMotion_plugin_text_get_fact { nick host handle channel text } {
+proc cMotion_plugin_text_random_fact { nick host handle channel text } {
 	global cMotionFacts
 	set intro "%VAR{get_fact_intros}"
 	set items [array names cMotionFacts]
@@ -18,8 +18,19 @@ proc cMotion_plugin_text_get_fact { nick host handle channel text } {
 	set i [lindex $items [rand [llength $items]]]
 	if {[regexp "(what|who),(.+)" $i matches type item]} {
 		set property [lindex $cMotionFacts($type,$item) [rand [llength $cMotionFacts($type,$item)]]]
+		set verbfact [split $property ","]
+		cMotionDoAction $channel $nick "$intro $item [lindex $verbfact 0] [lindex $verbfact 1]"
+	}
+	return 1
+}
 
-		cMotionDoAction $channel $nick "$intro $item was $property"
+cMotion_plugin_add_text "getfact3" "^%botnicks,?:? tell me about" 100 cMotion_plugin_text_get_fact "en"
+
+proc cMotion_plugin_text_get_fact { nick host handle channel text } {
+	global cMotionFacts
+	if [regexp -nocase {tell me about (.*)} $text matches item] {
+
+		# get $item from cMotionFacts
 
 	}
 	return 1
