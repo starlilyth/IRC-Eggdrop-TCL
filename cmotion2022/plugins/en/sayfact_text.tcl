@@ -28,10 +28,20 @@ cMotion_plugin_add_text "getfact3" "^%botnicks,?:? tell me about" 100 cMotion_pl
 
 proc cMotion_plugin_text_get_fact { nick host handle channel text } {
 	global cMotionFacts
+	set intro "%VAR{get_fact_intros}"
 	if [regexp -nocase {tell me about (.*)} $text matches item] {
-
 		# get $item from cMotionFacts
-
+    if [info exists cMotionFacts(who,$item)] {
+      set factlist $cMotionFacts(who,$item)
+    } elseif [info exists cMotionFacts(what,$item)] {
+      set factlist $cMotionFacts(what,$item)
+    } else {
+    	cMotionDoAction $channel $nick "I dont know about $item, $nick"
+    	return 1
+    }
+		set property [lindex $factlist [rand [llength $factlist]]]
+		set verbfact [split $property ","]
+		cMotionDoAction $channel $nick "$intro $item [lindex $verbfact 0] [lindex $verbfact 1]"
 	}
 	return 1
 }
