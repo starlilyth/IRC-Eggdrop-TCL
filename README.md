@@ -5,7 +5,10 @@ TCL scripts for use with Eggdrop IRC bots.
 
 Developed originally on Eggdrop 1.6.x, but should work with 1.9.x if compat module is loaded. I like sqlite3, so data storage for these scripts uses it. 
 
-- lilyurl (URL2IRC): Scans links in IRC channels and returns titles and tinyurl, and logs to a webpage. 
+- URL2IRC (lilyurl): Scans links in IRC channels and returns titles and tinyurl, and logs to a webpage. 
+  
+  Version 2.x has YouTube integration: provide your Google/YouTube API key for optional YouTube searching and expanded video details. 
+
   *MASSIVE UPDATES from 1.6!* Please report any links that do not get titled or logged correctly. 
 
 - lilykarma: A Karma database script for Eggdrop bots. It has flood control built in, and basic self-karma prevention. 
