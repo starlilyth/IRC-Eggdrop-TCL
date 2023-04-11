@@ -14,8 +14,7 @@
 set url2irc(path) /var/www/html/urllog
 
 # Google/YouTube API key. Put your key in quotes to enable !yt searching and extended YouTube info
-#set url2irc(apikey) ""
-set url2irc(apikey) "AIzaSyC6UyHZcKppXxNn9aPUc-pQhikDAqcKTfo"
+set url2irc(apikey) ""
 
 # Use ASCII colors?
 set url2irc(color) true
