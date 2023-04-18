@@ -3,7 +3,7 @@ IRC-Eggdrop-TCL
 
 TCL scripts for use with Eggdrop IRC bots.
 
-Developed originally on Eggdrop 1.6.x, but should work with 1.9.x if compat module is loaded. I like sqlite3, so data storage for these scripts uses it. 
+Developed originally on Eggdrop 1.6.x, but mostly tested with 1.9.x. I like sqlite3, so data storage for these scripts uses it. 
 
 - URL2IRC (lilyurl): Scans links in IRC channels and returns titles and tinyurl, and logs to a webpage. 
   
@@ -17,7 +17,7 @@ Developed originally on Eggdrop 1.6.x, but should work with 1.9.x if compat modu
 
 - autobar: A robot bartender for all your virtual drinking needs. 
 
-- cmotion2022: A rework of the BMotion bot, has been converted to use sqlite3 database instead of on disk files, plus lots of other cleanups. 
+- cmotion2022: A rework of the BMotion bot, has been converted to use sqlite3 database instead of on disk files, plus lots of other cleanups.  (cmotion may need compat module is loaded on Eggdrop 1.9.x)
 
 - lilyweather: A weather report scraper. Uses wunderground for data (has not been updated in some time and is probably broken, sorry) 
 
