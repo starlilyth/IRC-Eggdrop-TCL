@@ -19,6 +19,9 @@ set url2irc(apikey) ""
 # Use ASCII colors?
 set url2irc(color) true
 
+# Dark mode for the web page?
+set url2irc(darkmode) true
+
 # Show runtime: "(11s ago)".
 set url2irc(runtime) true
 
@@ -57,7 +60,8 @@ set url2irc(debug) false         ;# show error handling
 #     - fixed: TLS, redirection, metadata case, title regexp, tinyurl, yt ignore. 20230323
 #     - TLS solution found at: http://forum.egghelp.org/viewtopic.php?t=20503
 # 1.8 - JS only sites output, color flag, runtime output, code optimization, error handling. 20230328
-# 2.0 - file name change, integrated youtube details and search function - 20230410
+# 2.0 - file name change, integrated youtube details and search function - 20230418
+# 2.1 - HTML fixes, colors and darkmode - 20230412
 
 # No edits below here unless you will submit a patch.
 ################################################
@@ -293,8 +297,10 @@ proc get_title {url} {
     if {[regexp -nocase {i.imgur} $url]} {return "Imgur \[$content_type\]"}
     if {[regexp -nocase {imgur} $url]} {return "Imgur"}
     if {[regexp -nocase {twitter} $url]} {return "Twitter"}
+    if {[regexp -nocase {twitch} $url]} {return "Twitch"}
     if {[regexp -nocase {(youtube|youtu.be)} $url]} {return "YouTube"}
     if {[regexp -nocase {(google|goo.gl)} $url]} {return "Google"}
+    if {[regexp -nocase {spotify} $url]} {return "Spotify"}
 
     # if we still have not returned a title yet
     return "$content_type"
@@ -389,7 +395,9 @@ proc chanout {nick chan urltitle shorturl verbs} {
     regsub -all "Google" $urltitle "\00302,15G\00304o\00308o\00302g\00303l\00304e\003" urltitle
     regsub -all "Facebook" $urltitle "\00302Facebook\003" urltitle
     regsub -all "Imgur" $urltitle "\00309Imgur\003" urltitle
+    regsub -all "Spotify" $urltitle "\00309Spotify\003" urltitle
     regsub -all "Twitter" $urltitle "\00311Twitter\003" urltitle
+    regsub -all "Twitch" $urltitle "\00306Twitch\003" urltitle
   }
   # channel output
   set runtime ""
@@ -408,16 +416,28 @@ proc htmlout {chan} {
   if {[file isdirectory $url2irc(path)] && [file writable $url2irc(path)]} {
     regsub "#" $chan "" cname
     sqlite3 ldb $url2irc(udbfile)
+
     # update database
     set rtime [expr [clock seconds] - ($url2irc(maxdays) * 86400)]
     ldb eval {DELETE FROM urllog WHERE lTime < $rtime}
     set logday 0000
-    # write channel page
+
+    # page setup
+    set bgcolor "white"
+    set fontcolor "black"
+    if {$url2irc(darkmode) eq "true"} {
+      set bgcolor "black"
+      set fontcolor "ivory"
+    }
+    set headerhtml "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"600\" /><style> * { font-family: sans-serif; background-color: $bgcolor; color: $fontcolor }</style>"
+    set footerhtml "<p style='text-align: center'><small><b>URL 2 IRC</b> by Lily (<a href=\"https://github.com/starlilyth\" target=\"_blank\">https://github.com/starlilyth</a>)</small></body></html>"
+
+    # channel page
     set htmlpage [ open "$url2irc(path)/$cname.html" w+ ]
-    puts $htmlpage "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"600\" /><title>URL Log for $chan</title><head>"
+    puts $htmlpage "$headerhtml <title>URL Log for $chan</title><head>"
     set lcount [ldb eval {SELECT COUNT(distinct lurl) FROM urllog where lchan = $cname}]
     set tdays [expr (([clock seconds] - [ldb eval {SELECT lTime FROM urllog where lchan = $cname order by rowid asc limit 1}]) / 86400) +1]
-    puts $htmlpage "<body bgcolor=white><p><h1>URL Log for $chan</h1>$lcount URLs in $tdays days<br><small>This page reloads itself every 5 minutes.<br>Go back to the <a href=\"./index.html\">Index</a></small></p><p>Date - Time - <i>Nick</i> - URL<br><b>Title</b>"
+    puts $htmlpage "<body><h1>URL Log for $chan</h1>$lcount URLs in $tdays days<br><small>This page reloads itself every 5 minutes.<br>Go back to the <a href=\"./index.html\">Index</a></small><p>Date - Time - <i>Nick</i> - URL<br><b>Title</b></p>"
     foreach lrowid [ldb eval {SELECT rowid FROM urllog WHERE lchan = $cname order by rowid desc}] {
       set lrurl [ldb eval {SELECT lurl FROM urllog where rowid = $lrowid }]
       set lrucount [ldb eval {SELECT COUNT(1) FROM urllog where lurl = $lrurl AND lchan = $cname}]
@@ -430,29 +450,42 @@ proc htmlout {chan} {
         }
       } else {set plrnick $lrnick}
       set lrtitle [ldb onecolumn {SELECT ltitle FROM urllog where rowid = $lrowid }]
-      set lrTime [ldb eval {SELECT lTime FROM urllog where rowid = $lrowid }]
-      set tstamp [clock format $lrTime -format {%b. %d - %H:%M}]
+      # fancy colors - https://www.w3schools.com/colors/colors_names.asp
+      regsub -all "Google" $lrtitle "<span style='color:dodgerblue'>G</span><span style='color:red'>o</span><span style='color:gold'>o</span><span style='color:dodgerblue'>g</span><span style='color:limegreen'>l</span><span style='color:red'>e</span>" lrtitle
+      regsub -all "YouTube" $lrtitle "You<span style='background-color:tomato;color:white'>Tube</span>" lrtitle
+      regsub -all "Facebook" $lrtitle "<span style='color:dodgerblue'>Facebook</span>" lrtitle
+      regsub -all "Imgur" $lrtitle "<span style='color:limegreen'>Imgur</span>" lrtitle
+      regsub -all "Spotify" $lrtitle "<span style='color:green'>Spotify</span>" lrtitle
+      regsub -all "Twitter" $lrtitle "<span style='color:deepskyblue'>Twitter</span>" lrtitle
+      regsub -all "Twitch" $lrtitle "<span style='color:blueviolet'>Twitch</span>" lrtitle
       # NSFW tag
       if {[ldb eval {SELECT COUNT(1) FROM urllog where lurl = $lrurl AND lchan = $cname and lflag like '%NSFW%'}]} {
         set lrf " - (marked <font color=\"red\"><b>NSFW</b></font>)"} else {set lrf ""}
+      # URL trim
       if {[string length $lrurl] >=$url2irc(clength)} {
         set plrurl "[string replace $lrurl $url2irc(clength) end ] ..."
       } else { set plrurl $lrurl }
+      # time
+      set lrTime [ldb eval {SELECT lTime FROM urllog where rowid = $lrowid }]
+      set tstamp [clock format $lrTime -format {%b. %d - %H:%M}]
+      # day divider
       if {[clock format $lrTime -format {%m%d}] != $logday} {
         set plogday [clock format $lrTime -format {%A %B %d}]
-        puts $htmlpage "<p><center><b>$plogday</b></center></p><hr>"
+        puts $htmlpage "<p style='text-align: center'><b>$plogday</b></p><hr>"
         set logday [clock format $lrTime -format {%m%d}]
       }
-      puts $htmlpage "<p>$tstamp - <i>$plrnick</i> - <a href=\"$lrurl\">$plrurl</a><br><b>$lrtitle</b>$lrf<hr>"
+      # url entry
+      puts $htmlpage "<p>$tstamp - <i>$plrnick</i> - <a href=\"$lrurl\" target=\"_blank\">$plrurl</a><br><b>$lrtitle</b>$lrf<hr>"
     }
-    puts $htmlpage "<center><small><b>URL 2 IRC</b> by Lily (<a href=\"https://github.com/starlilyth\" target=\"_blank\">https://github.com/starlilyth</a>)</small></center></body></html>"
+    puts $htmlpage $footerhtml
     close $htmlpage
-    # write index page
+
+    # index page
     set indexpage [ open "$url2irc(path)/index.html" w+ ]
-    puts $indexpage "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"600\" /><title>URL Log Index for $botnick</title><head>"
+    puts $indexpage "$headerhtml <title>URL Log Index for $botnick</title><head>"
     set ilcount [ldb eval {SELECT COUNT(distinct lurl) FROM urllog}]
     set ichanc [ldb eval {SELECT COUNT(distinct lchan) FROM urllog}]
-    puts $indexpage "<body bgcolor=white><p><h1>URL Log Index for $botnick</h1>$ilcount URLs in $ichanc channels<br><small>This page reloads itself every 5 minutes.</small></p><hr>"
+    puts $indexpage "<body><h1>URL Log Index for $botnick</h1>$ilcount URLs in $ichanc channels<br><small>This page reloads itself every 5 minutes.</small><hr>"
     foreach chanid  [ldb eval {SELECT distinct lchan FROM urllog}] {
       set ilcount [ldb eval {SELECT COUNT(distinct lurl) FROM urllog where lchan = $chanid}]
       set ilTime [ldb eval {SELECT lTime from urllog where lchan = $chanid order by rowid desc limit 1}]
@@ -460,7 +493,7 @@ proc htmlout {chan} {
       set iltitle [ldb onecolumn {SELECT ltitle from urllog where lchan = $chanid order by rowid desc limit 1}]
       puts $indexpage "<p><a href=\"./$chanid.html\">\#$chanid</a> - $ilcount URLs - last link posted $itstamp<br>Last link title: <b>$iltitle</b></p><hr>"
     }
-    puts $indexpage "<center><small><b>URL 2 IRC</b> by Lily (<a href=\"https://github.com/starlilyth\" target=\"_blank\">https://github.com/starlilyth</a>)</small></center></body></html>"
+    puts $indexpage $footerhtml
     close $indexpage
     ldb close
   } else {
@@ -475,5 +508,5 @@ proc tls_socket {args} {
    ::tls::socket -servername $host {*}$opts $host $port
 }
 
-putlog "URL 2 IRC v2.0 script loaded"
+putlog "URL 2 IRC v2.1 script loaded"
 
